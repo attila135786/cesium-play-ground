@@ -14,10 +14,11 @@ const cesiumWorkers = '../Build/Cesium/Workers';
 
 module.exports = {
 	mode: 'development',
-	devtool: 'eval',
+
+	devtool: 'source-map',
 	context: __dirname,
 	entry: {
-		app: './src/index.js'
+		app: './src/index.tsx'
 	},
 	output: {
 		filename: '[name].js',
@@ -38,35 +39,43 @@ module.exports = {
 		alias: {
 			// Cesium module name
 			cesium: path.resolve(__dirname, cesiumSource)
-		}
+		},
+		// Add '.ts' and '.tsx' as resolvable extensions.
+		extensions: [".ts", ".tsx", ".js", ".json"]
 	},
 	module: {
-		rules: [{
-			test: /\.css$/,
-			use: ['style-loader', {
-				loader: 'css-loader',
-				options: {
-					// minify loaded css
-					minimize: true
-				}
-			}]
-		}, {
-			test: /\.(png|gif|jpg|jpeg|svg|xml|json)$/,
-			use: ['url-loader']
-		}, {
-			// Strip cesium pragmas
-			test: /\.js$/,
-			enforce: 'pre',
-			include: path.resolve(__dirname, cesiumSource),
-			use: [{
-				loader: 'strip-pragma-loader',
-				options: {
-					pragmas: {
-						debug: false
+		rules: [
+			{
+				test: /\.css$/,
+				use: ['style-loader', {
+					loader: 'css-loader',
+					options: {
+						// minify loaded css
+						minimize: false
 					}
-				}
-			}]
-		}]
+				}]
+			}, {
+				test: /\.(png|gif|jpg|jpeg|svg|xml|json)$/,
+				use: ['url-loader']
+			}, {
+				// Strip cesium pragmas
+				test: /\.js$/,
+				enforce: 'pre',
+				include: path.resolve(__dirname, cesiumSource),
+				use: [{
+					loader: 'strip-pragma-loader',
+					options: {
+						pragmas: {
+							debug: false
+						}
+					}
+				}]
+			}, { // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
+				test: /\.tsx?$/, loader: "awesome-typescript-loader"
+			}, { // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
+				enforce: "pre", test: /\.js$/, loader: "source-map-loader"
+			}
+		]
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
